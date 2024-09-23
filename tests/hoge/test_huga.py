@@ -1,4 +1,4 @@
-from hoge.huga import Huga
+from approved_npo_data.huga import Huga
 
 
 class TestHuga:

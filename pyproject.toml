@@ -1,7 +1,7 @@
 [project]
-name = "python_repository_simple"
+name = "approved-npo-data"
 version = "0.0.0"
-description = "python_repository_simple"
+description = "approved-npo-data"
 authors = [
     { name = "yamap55", email = "1785817+yamap55@users.noreply.github.com" },
 ]
@@ -19,7 +19,7 @@ build-backend = "hatchling.build"
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/python_repository_simple"]
+packages = ["src/approved-npo-data"]
 
 [tool.rye]
 managed = true

@@ -2,7 +2,7 @@
 
 from logging import config
 
-from hoge.huga import Huga
+from approved_npo_data.huga import Huga
 
 config.fileConfig("logging.conf", disable_existing_loggers=False)
 
