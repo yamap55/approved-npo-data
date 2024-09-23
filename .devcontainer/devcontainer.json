@@ -1,0 +1,78 @@
+// ref. https://github.com/Microsoft/vscode-remote-try-python
+{
+  "name": "Python Repository Simple",
+  // Use docker-compose.extend.yml to run a command that keeps the container running.
+  "dockerComposeFile": ["./compose.yaml"],
+  "service": "python_repository_simple",
+  "workspaceFolder": "/project",
+  "shutdownAction": "stopCompose",
+  // Comment out the next line to run as root instead. Linux users,
+  // update Dockerfile with your user's UID/GID if not 1000.
+  "remoteUser": "vscode",
+  "features": {
+    // install the latest version of git
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest",
+      "ppa": "false"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "files.eol": "\n",
+        "files.insertFinalNewline": true,
+        "files.trimTrailingWhitespace": true,
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash"
+          }
+        },
+        "python.defaultInterpreterPath": "/project/.venv/bin/python",
+        "python.pythonPath": "/project/.venv/bin/python",
+        "python.testing.pytestEnabled": true,
+        "python.analysis.diagnosticMode": "workspace",
+        "python.languageServer": "Pylance",
+        "python.analysis.typeCheckingMode": "basic",
+        "ruff.showNotifications": "always",
+        // ruff.pathを指定することでVS Code拡張にバンドルされているruffではなくryeのruffを使用する
+        "ruff.path": ["/home/vscode/.rye/self/bin/ruff"],
+        "vsintellicode.python.completionsEnabled": true,
+        "vsintellicode.features.python.deepLearning": "enabled",
+        "vsintellicode.modify.editor.suggestSelection": "enabled",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": "never",
+          "source.fixAll": "explicit"
+        },
+        "[python]": {
+          "editor.tabSize": 4,
+          "editor.formatOnPaste": false,
+          "editor.defaultFormatter": "charliermarsh.ruff"
+        },
+        "[json]": {
+          "editor.tabSize": 2
+        },
+        "[yaml]": {
+          "editor.tabSize": 2
+        },
+        "autoDocstring.docstringFormat": "numpy",
+        "autoDocstring.startOnNewLine": true
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter",
+        "esbenp.prettier-vscode",
+        "njpwerner.autodocstring",
+        "eamodio.gitlens",
+        "ms-python.vscode-pylance",
+        "VisualStudioExptTeam.vscodeintellicode",
+        "exiasr.hadolint",
+        "tamasfe.even-better-toml",
+        "usernamehw.errorlens",
+        "charliermarsh.ruff",
+        "GitHub.copilot"
+      ]
+    }
+  },
+  "postStartCommand": "pip install -U pip && rye self update"
+}
