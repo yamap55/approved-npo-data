@@ -148,3 +148,6 @@ Thumbs.db
 
 # ruff
 .ruff_cache
+
+# output directory
+output
