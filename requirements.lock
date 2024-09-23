@@ -10,3 +10,19 @@
 #   universal: false
 
 -e file:.
+cffi==1.17.1
+    # via cryptography
+charset-normalizer==3.3.2
+    # via pdfminer-six
+cryptography==43.0.1
+    # via pdfminer-six
+pdfminer-six==20231228
+    # via pdfplumber
+pdfplumber==0.11.4
+    # via approved-npo-data
+pillow==10.4.0
+    # via pdfplumber
+pycparser==2.22
+    # via cffi
+pypdfium2==4.30.0
+    # via pdfplumber
