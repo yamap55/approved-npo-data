@@ -31,5 +31,5 @@ def download_file(url: str, save_directory_path: Path | None = None) -> Path:
 
     with open(save_path, "wb") as file:
         file.write(response.content)
-    logger.info(f"Zip file downloaded and saved to: {save_path}")
+    logger.debug(f"Zip file downloaded and saved to: {save_path}")
     return save_path
