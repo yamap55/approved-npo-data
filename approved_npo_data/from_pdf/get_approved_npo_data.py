@@ -10,8 +10,6 @@ from pathlib import Path
 
 import pdfplumber
 
-from approved_npo_data.util.file_operations import get_output_path, save_csv
-
 BASE_PATH = Path(".")
 BASE_PATH.mkdir(parents=True, exist_ok=True)
 
@@ -75,12 +73,3 @@ def get_approved_npo_data():
     """認定NPO法人のデータを取得する"""
     pdf_path = get_pdf_path()
     return extract_tables_from_pdf(pdf_path)
-
-
-def main():
-    """main"""
-    tables = get_approved_npo_data()
-    csv_file_path = get_output_path(BASE_PATH, "approved_npo_data")
-    save_csv(tables, CSV_HEADER, csv_file_path)
-
-    print(f"データが {csv_file_path} に保存されました。")
