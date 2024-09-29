@@ -38,8 +38,12 @@ devcontainer の設定をしていますので、VS Code と Docker、Git さえ
 5. 起動したら開発可能
    - 初回起動時は `rye sync` を実行してください
 
-## NOTE
+## 実行
 
+- 実行
+  - `python main.py`
+  - 結果出力
+    - `output` フォルダ内に CSV ファイルが出力されます
 - ユニットテスト
   - `rye test`
 - lint
