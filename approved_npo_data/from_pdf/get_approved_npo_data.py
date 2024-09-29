@@ -6,11 +6,11 @@ PDFファイルからNPO法人のデータを抽出し、CSVファイルに保�
 >>> main()
 """
 
-import csv
-from datetime import datetime
 from pathlib import Path
 
 import pdfplumber
+
+from approved_npo_data.util.file_operations import get_output_path, save_csv
 
 BASE_PATH = Path(".")
 BASE_PATH.mkdir(parents=True, exist_ok=True)
@@ -71,28 +71,11 @@ def get_pdf_path() -> Path:
     return BASE_PATH / "approved_npo_data/from_pdf" / "ninteimeibo.pdf"
 
 
-def get_output_path() -> Path:
-    """出力ファイルのパスを取得する"""
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    output_base_path = BASE_PATH / "output"
-    output_base_path.mkdir(parents=True, exist_ok=True)
-
-    return output_base_path / f"output_{timestamp}.csv"
-
-
-def save_csv(tables, csv_file_path) -> None:
-    """CSVファイルでデータを保存する"""
-    with open(csv_file_path, mode="w", newline="", encoding="utf-8") as file:
-        writer = csv.writer(file, quoting=csv.QUOTE_ALL)
-        writer.writerow(CSV_HEADER)
-        writer.writerows(tables)
-
-
 def main():
     """main"""
     pdf_path = get_pdf_path()
     tables = extract_tables_from_pdf(pdf_path)
-    csv_file_path = get_output_path()
-    save_csv(tables, csv_file_path)
+    csv_file_path = get_output_path(BASE_PATH, "approved_npo_data")
+    save_csv(tables, CSV_HEADER, csv_file_path)
 
     print(f"データが {csv_file_path} に保存されました。")
