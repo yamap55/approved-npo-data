@@ -71,10 +71,15 @@ def get_pdf_path() -> Path:
     return BASE_PATH / "approved_npo_data/from_pdf" / "ninteimeibo.pdf"
 
 
+def get_approved_npo_data():
+    """認定NPO法人のデータを取得する"""
+    pdf_path = get_pdf_path()
+    return extract_tables_from_pdf(pdf_path)
+
+
 def main():
     """main"""
-    pdf_path = get_pdf_path()
-    tables = extract_tables_from_pdf(pdf_path)
+    tables = get_approved_npo_data()
     csv_file_path = get_output_path(BASE_PATH, "approved_npo_data")
     save_csv(tables, CSV_HEADER, csv_file_path)
 
