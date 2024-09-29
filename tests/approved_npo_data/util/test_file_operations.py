@@ -1,61 +1,144 @@
+import csv
 import tempfile
 import zipfile
+from datetime import datetime
 from pathlib import Path
 from unittest import mock
 
 import pytest
 
-from approved_npo_data.util.file_operations import extract_zip_file
+from approved_npo_data.util.file_operations import extract_zip_file, get_output_path, save_csv
 
 
-@pytest.fixture
-def temp_zip_file():
-    """一時的なzipファイルを作成し、テスト後に削除する"""
-    with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as temp_file:
-        temp_zip_path = Path(temp_file.name)
+class TestExtractZipFile:
+    @pytest.fixture
+    @staticmethod
+    def temp_zip_file():
+        """一時的なzipファイルを作成し、テスト後に削除する"""
+        with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as temp_file:
+            temp_zip_path = Path(temp_file.name)
 
-    with zipfile.ZipFile(temp_zip_path, "w") as zipf:
-        zipf.writestr("test.txt", "this is a test file")
+        with zipfile.ZipFile(temp_zip_path, "w") as zipf:
+            zipf.writestr("test.txt", "this is a test file")
 
-    yield temp_zip_path
+        yield temp_zip_path
 
-    temp_zip_path.unlink()
+        temp_zip_path.unlink()
 
+    def test_extract_zip_file_with_temp_directory(self, temp_zip_file):
+        """extract_zip_file関数が正しく解凍を行うかテスト"""
+        # extract_toがNoneの場合、一時ディレクトリに解凍されることを確認
+        output_dir = extract_zip_file(temp_zip_file)
 
-def test_extract_zip_file_with_temp_directory(temp_zip_file):
-    """extract_zip_file関数が正しく解凍を行うかテスト"""
-    # extract_toがNoneの場合、一時ディレクトリに解凍されることを確認
-    output_dir = extract_zip_file(temp_zip_file)
-
-    # 解凍後のディレクトリ内にファイルが存在することを確認
-    extracted_file = output_dir / "test.txt"
-    assert extracted_file.exists()
-
-    # 解凍されたファイルの内容を確認
-    with extracted_file.open() as f:
-        content = f.read()
-    assert content == "this is a test file"
-
-
-def test_extract_zip_file_to_specific_directory(temp_zip_file):
-    """指定したディレクトリに解凍が行われるかテスト"""
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp_dir_path = Path(temp_dir)
-        output_dir = extract_zip_file(temp_zip_file, temp_dir_path)
-
-        # 解凍先ディレクトリが正しく設定されていることを確認
-        assert output_dir == temp_dir_path
-
-        # 解凍されたファイルの存在を確認
+        # 解凍後のディレクトリ内にファイルが存在することを確認
         extracted_file = output_dir / "test.txt"
         assert extracted_file.exists()
 
+        # 解凍されたファイルの内容を確認
+        with extracted_file.open() as f:
+            content = f.read()
+        assert content == "this is a test file"
 
-@mock.patch("approved_npo_data.util.file_operations.zipfile.ZipFile.extractall")
-def test_extract_zip_file_mocked_extract(mock_extractall, temp_zip_file):
-    """Zipファイルのextractallが呼び出されることを確認"""
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp_dir_path = Path(temp_dir)
-        extract_zip_file(temp_zip_file, temp_dir_path)
+    def test_extract_zip_file_to_specific_directory(self, temp_zip_file):
+        """指定したディレクトリに解凍が行われるかテスト"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_dir_path = Path(temp_dir)
+            output_dir = extract_zip_file(temp_zip_file, temp_dir_path)
 
-        mock_extractall.assert_called_once()
+            # 解凍先ディレクトリが正しく設定されていることを確認
+            assert output_dir == temp_dir_path
+
+            # 解凍されたファイルの存在を確認
+            extracted_file = output_dir / "test.txt"
+            assert extracted_file.exists()
+
+    @mock.patch("approved_npo_data.util.file_operations.zipfile.ZipFile.extractall")
+    def test_extract_zip_file_mocked_extract(self, mock_extractall, temp_zip_file):
+        """Zipファイルのextractallが呼び出されることを確認"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_dir_path = Path(temp_dir)
+            extract_zip_file(temp_zip_file, temp_dir_path)
+
+            mock_extractall.assert_called_once()
+
+
+class TestSaveCsv:
+    @pytest.fixture
+    @staticmethod
+    def sample_data() -> list[list[str]]:
+        return [
+            ["Name", "Age", "City"],
+            ["Alice", "30", "New York"],
+            ["Bob", "25", "San Francisco"],
+        ]
+
+    @pytest.fixture
+    def output_path(self, tmp_path: Path, sample_data) -> Path:
+        output_path = tmp_path / "test.csv"
+        save_csv(data=sample_data[1:], header=sample_data[0], output_path=output_path)
+        return output_path
+
+    def test_csv_file_creation(self, output_path: Path):
+        assert output_path.exists(), "CSVファイルが作成されていません"
+
+    def test_csv_header(self, output_path: Path, sample_data):
+        with open(output_path, newline="", encoding="utf-8") as file:
+            reader = csv.reader(file, quoting=csv.QUOTE_ALL)
+            header = next(reader)
+        assert header == sample_data[0], "ヘッダーが正しく保存されていません"
+
+    def test_csv_data(self, output_path: Path, sample_data):
+        with open(output_path, newline="", encoding="utf-8") as file:
+            reader = csv.reader(file, quoting=csv.QUOTE_ALL)
+            next(reader)  # ヘッダーをスキップ
+            rows = list(reader)
+        assert rows == sample_data[1:], "データが正しく保存されていません"
+
+    def test_empty_data(self, tmp_path: Path):
+        output_path = tmp_path / "test.csv"
+        save_csv(data=[], header=["Name", "Age", "City"], output_path=output_path)
+
+        with open(output_path, newline="", encoding="utf-8") as file:
+            reader = csv.reader(file, quoting=csv.QUOTE_ALL)
+            rows = list(reader)
+        assert rows == [["Name", "Age", "City"]], "データが空のときヘッダーのみが保存されていません"
+
+
+class TestGetOutputPath:
+    @pytest.fixture
+    @staticmethod
+    def mock_datetime():
+        """Datetimeモジュールをモックして、固定された日時を返す"""
+        with mock.patch("approved_npo_data.util.file_operations.datetime") as mock_datetime:
+            mock_datetime.now.return_value = datetime(2024, 9, 29, 12, 0, 0)
+            mock_datetime.strftime.return_value = "20240929120000"
+            yield mock_datetime
+
+    def test_output_directory_creation(self, mock_datetime, tmp_path):
+        """
+        出力ディレクトリが正しく作成されること
+        """
+        base_path = tmp_path / "test_dir"
+        result = get_output_path(base_path)
+
+        output_dir = base_path / "output"
+        assert output_dir.exists(), "出力ディレクトリが作成されていない"
+        assert output_dir.is_dir(), "作成された出力ディレクトリがディレクトリではない"
+
+        # 生成されたファイルパスが正しいか確認
+        expected_path = output_dir / "output_20240929120000.csv"
+        assert result == expected_path, "生成されたファイルパスが期待されるものと異なる"
+
+    def test_output_file_with_custom_prefix(self, mock_datetime, tmp_path):
+        """
+        カスタムプレフィックスを指定した場合、正しいファイルパスが生成されること
+        """
+        base_path = tmp_path / "test_dir"
+        prefix = "custom_prefix"
+
+        result = get_output_path(base_path, prefix=prefix)
+
+        expected_path = base_path / "output" / "custom_prefix_20240929120000.csv"
+        assert (
+            result == expected_path
+        ), "カスタムプレフィックスを使用したファイルパスが期待されるものと異なる"
