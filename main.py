@@ -58,7 +58,7 @@ def main():
     logger.info(f"end all npo data {len(all_npo_data)=}")
 
     logger.info("start merge data")
-    document_urls_header = ["最新年度", "URL"]
+    document_urls_header = ["ドキュメント最新年度", "ドキュメントURL"]
     output_csv_header = CSV_HEADER + all_npo_data_header + document_urls_header
 
     output_data = []
