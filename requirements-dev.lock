@@ -100,6 +100,8 @@ soupsieve==2.6
     # via beautifulsoup4
 stack-data==0.6.3
     # via ipython
+tenacity==9.0.0
+    # via approved-npo-data
 tornado==6.4.1
     # via ipykernel
     # via jupyter-client
