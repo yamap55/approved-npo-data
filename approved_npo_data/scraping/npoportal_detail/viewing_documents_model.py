@@ -55,12 +55,9 @@ class FinancialActivityReports(Report):
     category = "Financial Reports"
     reports: list[FinancialActivityReport] = field(default_factory=list)
 
-    def get_latest_report(self) -> FinancialActivityReport:
+    def get_latest_report(self) -> FinancialActivityReport | None:
         """最新の報告書を取得する"""
-        if self.reports:
-            return max(self.reports, key=lambda x: x.year)
-        else:
-            raise ValueError("The list is empty.")
+        return max(self.reports, key=lambda x: x.year, default=None)
 
 
 @dataclass(frozen=True)
