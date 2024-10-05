@@ -37,5 +37,7 @@ requests==2.32.3
     # via approved-npo-data
 soupsieve==2.6
     # via beautifulsoup4
+tenacity==9.0.0
+    # via approved-npo-data
 urllib3==2.2.3
     # via requests
