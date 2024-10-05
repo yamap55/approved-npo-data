@@ -66,7 +66,7 @@ def extract_tables_from_pdf(pdf_path) -> list:
 def get_pdf_path() -> Path:
     """PDFファイルのパスを取得する"""
     # NOTE: URLからダウンロードするとより良いと思うので関数に切り出している
-    return BASE_PATH / "approved_npo_data/from_pdf" / "ninteimeibo.pdf"
+    return BASE_PATH / "approved_npo_data" / "data" / "ninteimeibo.pdf"
 
 
 def get_approved_npo_data():

@@ -4,11 +4,11 @@ from logging import config, getLogger
 from pathlib import Path
 from time import perf_counter
 
-from approved_npo_data.from_pdf.get_approved_npo_data import (
+from approved_npo_data.all_npo_data import get_all_npo_data_from_url
+from approved_npo_data.approved_npo_data import (
     CSV_HEADER,
     get_approved_npo_data,
 )
-from approved_npo_data.get_all_npo_data_from_url import get_all_npo_data_from_url
 from approved_npo_data.util.date_format import simple_format_time
 from approved_npo_data.util.file_operations import get_output_path, save_csv
 from approved_npo_data.util.text_format import standardize_text_for_key
