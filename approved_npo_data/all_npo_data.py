@@ -2,6 +2,7 @@
 
 import csv
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from approved_npo_data.util.file_downloader import download_file
 from approved_npo_data.util.file_operations import extract_zip_file
@@ -12,9 +13,9 @@ from approved_npo_data.util.text_format import standardize_text_for_key
 ALL_NPO_DATA_URL = "https://www.npo-homepage.go.jp/npoportal/download/zip/gyousei_000.zip"
 
 
-def get_all_npo_data_file() -> Path:
+def get_all_npo_data_file(temp_dir: Path) -> Path:
     """全NPO法人情報のCSVファイルをダウンロードし、解凍したファイルのパスを返す"""
-    download_path = download_file(ALL_NPO_DATA_URL)
+    download_path = download_file(ALL_NPO_DATA_URL, temp_dir)
     dir_path = extract_zip_file(download_path)
 
     csv_files = list(dir_path.glob("*.csv"))
@@ -45,5 +46,6 @@ def read_csv(csv_path: Path) -> tuple[dict[str, dict[str, str]], list[str]]:
 
 def get_all_npo_data_from_url() -> tuple[dict[str, dict[str, str]], list[str]]:
     """全NPO法人情報をURLから取得する"""
-    target_csv = get_all_npo_data_file()
-    return read_csv(target_csv)
+    with TemporaryDirectory() as temp_dir:
+        target_csv = get_all_npo_data_file(Path(temp_dir))
+        return read_csv(target_csv)
