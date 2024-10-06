@@ -4,6 +4,7 @@ import csv
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from approved_npo_data.csv.csv_row import AllNpoDataRow
 from approved_npo_data.util.file_downloader import download_file
 from approved_npo_data.util.file_operations import extract_zip_file
 from approved_npo_data.util.text_format import standardize_text_for_key
@@ -26,25 +27,26 @@ def get_all_npo_data_file(temp_dir: Path) -> Path:
     return csv_files[0]
 
 
-def read_csv(csv_path: Path) -> tuple[dict[str, dict[str, str]], list[str]]:
+def read_csv(csv_path: Path) -> dict[str, AllNpoDataRow]:
     """csvファイルを読み込みヘッダの1つ目をキーとした辞書を返す"""
-    data_dict: dict[str, dict[str, str]] = {}
+    data_dict: dict[str, AllNpoDataRow] = {}
 
     with open(csv_path, encoding="cp932", newline="") as file:
         reader = csv.reader(file)
 
-        header = next(reader)
+        # ヘッダを捨てる
+        next(reader)
 
         for row in reader:
             if not row:
                 # 空行はスキップ
                 continue
             key = standardize_text_for_key(row[0])
-            data_dict[key] = {header[i]: row[i] for i, _ in enumerate(header)}
-    return data_dict, header
+            data_dict[key] = AllNpoDataRow(*row)
+    return data_dict
 
 
-def get_all_npo_data_from_url() -> tuple[dict[str, dict[str, str]], list[str]]:
+def get_all_npo_data_from_url() -> dict[str, AllNpoDataRow]:
     """全NPO法人情報をURLから取得する"""
     with TemporaryDirectory() as temp_dir:
         target_csv = get_all_npo_data_file(Path(temp_dir))

@@ -7,11 +7,9 @@ from time import perf_counter, sleep
 from tenacity import retry, stop_after_attempt, wait_random
 
 from approved_npo_data.all_npo_data import get_all_npo_data_from_url
-from approved_npo_data.approved_npo_data import (
-    CSV_HEADER,
-    get_approved_npo_data,
-)
+from approved_npo_data.approved_npo_data import get_approved_npo_data
 from approved_npo_data.config import MAX_ITEMS_TO_PROCESS, SCRAPING_DELAY_SECONDS
+from approved_npo_data.csv.csv_row import AllNpoDataRow, ApprovedNpoRow, OutputApprovedNpoRow
 from approved_npo_data.scraping.npoportal_detail.viewing_documents import scrape_viewing_documents
 from approved_npo_data.scraping.npoportal_detail.viewing_documents_model import (
     FinancialActivityReport,
@@ -43,6 +41,15 @@ def get_viewing_documents(url: str) -> tuple[str, str]:
     return year, urls
 
 
+def createOutputApprovedNpoRow(
+    approved_npo_row: ApprovedNpoRow, npo_data: AllNpoDataRow, detail_page_data: list[str]
+) -> OutputApprovedNpoRow:
+    """出力データを作成する"""
+    return OutputApprovedNpoRow(
+        *approved_npo_row.getValues(), *npo_data.getValues(), *detail_page_data
+    )
+
+
 def main():
     """main"""
     logger.info("start main")
@@ -52,55 +59,54 @@ def main():
 
     logger.info("start save approved_npo_data")
     csv_file_path = get_output_path(BASE_PATH, "approved_npo_data")
-    save_csv(approved_npo_data, CSV_HEADER, csv_file_path)
+    save_csv(approved_npo_data, csv_file_path)
     logger.info(f"end save approved_npo_data {csv_file_path=}")
 
     logger.info("start all npo data")
-    all_npo_data, all_npo_data_header = get_all_npo_data_from_url()
+    all_npo_data = get_all_npo_data_from_url()
     logger.info(f"end all npo data {len(all_npo_data)=}")
 
     logger.info("start merge data")
-    document_urls_header = ["ドキュメント最新年度", "ドキュメントURL"]
-    output_csv_header = CSV_HEADER + all_npo_data_header + document_urls_header
 
     output_data = []
     not_in_approve_npo = []
 
-    # 全NPO法人情報に存在しない場合のデータ
-    EMPTY_NPO_DATA = ["" for _ in all_npo_data_header]
-    EMPTY_DOCUMENT_URLS_DATA = ["" for _ in document_urls_header]
-
     for _, approved_npo_row in controlled_enumerate(
         approved_npo_data, log_interval=10, max_items=MAX_ITEMS_TO_PROCESS
     ):
-        associate_name = approved_npo_row[6]
-        key = standardize_text_for_key(associate_name)
-        row = EMPTY_NPO_DATA + EMPTY_DOCUMENT_URLS_DATA
-        if key not in all_npo_data:
-            logger.info(f"{associate_name} は全NPO法人情報に存在しません。")
-            not_in_approve_npo.append(associate_name)
-        else:
-            associate_data = all_npo_data[key]
-            url = associate_data["法人情報URL"]
-            document_urls = EMPTY_DOCUMENT_URLS_DATA
-            if url:
-                try:
-                    # URLが存在する場合には詳細ページからスクレイピングを行う
-                    year, urls = get_viewing_documents(url)
-                    document_urls = [year, urls]
+        associate_name = approved_npo_row.corporation_name
 
-                    # スクレイピングの負荷を考慮してスリープを入れる
-                    sleep(SCRAPING_DELAY_SECONDS)
-                except Exception as e:
-                    logger.error(f"{associate_name} のスクレイピングに失敗しました。{url} {e}")
+        def getNpoDataRow(associate_name: str) -> AllNpoDataRow:
+            key = standardize_text_for_key(associate_name)
+            if key not in all_npo_data:
+                logger.info(f"{associate_name} は全NPO法人情報に存在しません。")
+                not_in_approve_npo.append(associate_name)
+                return AllNpoDataRow.emptyInstance()
+            return all_npo_data[key]
 
-            row = list(associate_data.values()) + document_urls
-        output_data.append(approved_npo_row + row)
+        npoData = getNpoDataRow(associate_name)
+        url = npoData.corporate_information_url
+        # TODO: 詳細ページ情報
+        detail_page_data = ["", ""]
+        if url:
+            try:
+                # URLが存在する場合には詳細ページからスクレイピングを行う
+                year, urls = get_viewing_documents(url)
+                detail_page_data = [year, urls]
+
+                # スクレイピングの負荷を考慮してスリープを入れる
+                sleep(SCRAPING_DELAY_SECONDS)
+            except Exception as e:
+                logger.error(f"{associate_name} のスクレイピングに失敗しました。{url} {e}")
+        outputApprovedNpoRow = createOutputApprovedNpoRow(
+            approved_npo_row, npoData, detail_page_data
+        )
+        output_data.append(outputApprovedNpoRow)
     logger.info(f"end merge data {len(output_data)=}, {len(not_in_approve_npo)=}")
 
     logger.info("start save output data")
     output_csv_path = get_output_path(BASE_PATH)
-    save_csv(output_data, output_csv_header, output_csv_path)
+    save_csv(output_data, output_csv_path)
     logger.info(f"end save output data {output_csv_path=}")
 
     logger.info("end main")
