@@ -1,17 +1,17 @@
 """
-PDFファイルからNPO法人のデータを抽出し、CSVファイルに保存する
+認定NPO法人のデータを取得する
 
-とりあえずノートブックから移植しただけなので以下で実行してください
->>> from approved_npo_data.from_pdf.get_approved_npo_data import main
->>> main()
+CSV出力する際の関数も含まれている
 """
 
 from pathlib import Path
 
 import pdfplumber
 
-BASE_PATH = Path(".")
-BASE_PATH.mkdir(parents=True, exist_ok=True)
+from approved_npo_data.scraping.npoportal_approved_npo_list.all_approved_npo_list_url import (
+    get_approved_npo_data_url,
+)
+from approved_npo_data.util.file_downloader import download_file
 
 CSV_HEADER = [
     "所轄庁コード",
@@ -63,13 +63,13 @@ def extract_tables_from_pdf(pdf_path) -> list:
     return tables
 
 
-def get_pdf_path() -> Path:
-    """PDFファイルのパスを取得する"""
-    # NOTE: URLからダウンロードするとより良いと思うので関数に切り出している
-    return BASE_PATH / "approved_npo_data" / "data" / "ninteimeibo.pdf"
+def download_approved_npo_data() -> Path:
+    """認定NPO法人のデータをダウンロードする"""
+    url = get_approved_npo_data_url()
+    return download_file(url)
 
 
 def get_approved_npo_data():
     """認定NPO法人のデータを取得する"""
-    pdf_path = get_pdf_path()
+    pdf_path = download_approved_npo_data()
     return extract_tables_from_pdf(pdf_path)
