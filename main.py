@@ -17,6 +17,7 @@ from approved_npo_data.scraping.npoportal_detail.viewing_documents_model import 
     FinancialActivityReport,
 )
 from approved_npo_data.util.date_format import simple_format_time
+from approved_npo_data.util.enumerate import controlled_enumerate
 from approved_npo_data.util.file_operations import get_output_path, save_csv
 from approved_npo_data.util.text_format import standardize_text_for_key
 
@@ -69,12 +70,9 @@ def main():
     EMPTY_NPO_DATA = ["" for _ in all_npo_data_header]
     EMPTY_DOCUMENT_URLS_DATA = ["" for _ in document_urls_header]
 
-    all_size = len(approved_npo_data)
-    for i, approved_npo_row in enumerate(approved_npo_data):
-        if i == MAX_ITEMS_TO_PROCESS:
-            break
-        if i % 10 == 0:
-            logger.info(f"{i + 1}/{all_size}")
+    for _, approved_npo_row in controlled_enumerate(
+        approved_npo_data, log_interval=10, max_items=MAX_ITEMS_TO_PROCESS
+    ):
         associate_name = approved_npo_row[6]
         key = standardize_text_for_key(associate_name)
         row = EMPTY_NPO_DATA + EMPTY_DOCUMENT_URLS_DATA
