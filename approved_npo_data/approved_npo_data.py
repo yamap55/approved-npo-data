@@ -5,6 +5,7 @@ CSV出力する際の関数も含まれている
 """
 
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import pdfplumber
 
@@ -63,13 +64,14 @@ def extract_tables_from_pdf(pdf_path) -> list:
     return tables
 
 
-def download_approved_npo_data() -> Path:
+def download_approved_npo_data(temp_dir: Path) -> Path:
     """認定NPO法人のデータをダウンロードする"""
     url = get_approved_npo_data_url()
-    return download_file(url)
+    return download_file(url, temp_dir)
 
 
 def get_approved_npo_data():
     """認定NPO法人のデータを取得する"""
-    pdf_path = download_approved_npo_data()
-    return extract_tables_from_pdf(pdf_path)
+    with TemporaryDirectory() as temp_dir:
+        pdf_path = download_approved_npo_data(Path(temp_dir))
+        return extract_tables_from_pdf(pdf_path)
