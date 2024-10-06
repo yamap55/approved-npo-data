@@ -27,6 +27,10 @@ def extract_zip_file(zip_path: Path, extract_to: Path | None = None) -> Path:
 
 def save_csv(data: Sequence[CsvRow], output_path: Path) -> None:
     """CSVファイルでデータを保存する"""
+    if not data:
+        # NOTE: データが空の場合空のListが渡ってくるため、データの型が取れずヘッダが作成できない
+        raise ValueError("空のデータでCSVを保存することはできません")
+
     with open(output_path, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file, quoting=csv.QUOTE_ALL)
         writer.writerow(type(data[0]).getHeader())
