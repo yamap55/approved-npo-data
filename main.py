@@ -11,6 +11,7 @@ from approved_npo_data.approved_npo_data import (
     CSV_HEADER,
     get_approved_npo_data,
 )
+from approved_npo_data.config import MAX_ITEMS_TO_PROCESS, SCRAPING_DELAY_SECONDS
 from approved_npo_data.scraping.npoportal_detail.viewing_documents import scrape_viewing_documents
 from approved_npo_data.scraping.npoportal_detail.viewing_documents_model import (
     FinancialActivityReport,
@@ -70,6 +71,8 @@ def main():
 
     all_size = len(approved_npo_data)
     for i, approved_npo_row in enumerate(approved_npo_data):
+        if i == MAX_ITEMS_TO_PROCESS:
+            break
         if i % 10 == 0:
             logger.info(f"{i + 1}/{all_size}")
         associate_name = approved_npo_row[6]
@@ -89,7 +92,7 @@ def main():
                     document_urls = [year, urls]
 
                     # スクレイピングの負荷を考慮してスリープを入れる
-                    sleep(1)
+                    sleep(SCRAPING_DELAY_SECONDS)
                 except Exception as e:
                     logger.error(f"{associate_name} のスクレイピングに失敗しました。{url} {e}")
 
