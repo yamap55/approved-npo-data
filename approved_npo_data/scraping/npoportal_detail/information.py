@@ -1,36 +1,12 @@
 """NPO法人ポータルの詳細ページから基本情報をスクレイピングする"""
 
 import re
-from urllib.parse import parse_qs, unquote, urlparse
 
 import requests
 from bs4 import BeautifulSoup
 
 from approved_npo_data.scraping.npoportal_detail.Information_model import Information
-
-
-def extract_embedded_url(url: str) -> str:
-    """
-    埋め込まれているURLを抽出する関数。
-
-    Args:
-        url (str): 元のURL。
-
-    Returns:
-        str: 埋め込まれているURL。見つからない場合は空文字列を返す。
-    """
-    # URLを解析
-    parsed_url = urlparse(url)
-
-    # クエリパラメータから埋め込まれているURLを取得
-    query_params = parse_qs(parsed_url.query)
-    embedded_url = query_params.get("url", [None])[0]
-
-    # 埋め込まれているURLをデコードして返す
-    if embedded_url:
-        return unquote(embedded_url)
-    else:
-        return ""
+from approved_npo_data.util.url import extract_embedded_url
 
 
 def clean_text(text: str) -> str:
