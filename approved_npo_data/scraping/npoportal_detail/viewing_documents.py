@@ -2,7 +2,6 @@
 
 import re
 
-import requests
 from bs4 import BeautifulSoup
 
 from approved_npo_data.scraping.npoportal_detail.viewing_documents_model import (
@@ -54,19 +53,12 @@ def create_report_from_category(
         return "other", OtherReport(category=category, value=td.get_text(strip=True))
 
 
-def scrape_viewing_documents(url: str) -> ViewingDocuments:
+def scrape_viewing_documents(soup: BeautifulSoup) -> ViewingDocuments:
     """閲覧書類等をスクレイピングする"""
-    try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-    except requests.RequestException as e:
-        raise ValueError(f"URLの取得に失敗しました: {url}. エラー: {e}") from e
-
-    soup = BeautifulSoup(response.content, "html.parser")
     # 「閲覧書類等」のテーブルを探す
     table = soup.find("table", {"summary": "閲覧書類"})
     if not table:
-        raise ValueError(f"閲覧書類等のテーブルが見つかりませんでした。{url}")
+        raise ValueError("閲覧書類等のテーブルが見つかりませんでした。")
 
     bylaws = None
     other_reports = []
@@ -85,7 +77,7 @@ def scrape_viewing_documents(url: str) -> ViewingDocuments:
                 financial_reports.reports.append(data)  # type: ignore
             elif category_type == "bylaws":
                 if bylaws:
-                    raise ValueError(f"定款のカテゴリが複数存在します。{url}")
+                    raise ValueError("定款のカテゴリが複数存在します。")
                 bylaws = data
             elif category_type == "other":
                 other_reports.append(data)
