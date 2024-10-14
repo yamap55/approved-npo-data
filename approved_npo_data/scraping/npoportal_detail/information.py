@@ -2,7 +2,6 @@
 
 import re
 
-import requests
 from bs4 import BeautifulSoup
 
 from approved_npo_data.scraping.npoportal_detail.Information_model import Information
@@ -17,15 +16,11 @@ def clean_text(text: str) -> str:
 
 def extract_table_data(soup: BeautifulSoup) -> dict[str, str]:
     """
-    BeautifulSoupオブジェクトからテーブルデータを辞書として抽出する。
-
-    Args:
-        soup (BeautifulSoup): 行政入力情報を含むBeautifulSoupオブジェクト。
-
-    Returns:
-        Dict[str, str]: テーブルデータのキーと値の辞書。
+    BeautifulSoupオブジェクトから基本情報を辞書として抽出する。
     """
     table = soup.find("table", summary="基本情報")
+    if not table:
+        raise ValueError("基本情報のテーブルが見つかりませんでした。")
     data = {}
 
     if table:
@@ -44,25 +39,10 @@ def extract_table_data(soup: BeautifulSoup) -> dict[str, str]:
     return data
 
 
-def scrape_npo_information(detail_url: str) -> Information:
+def scrape_npo_information(soup: BeautifulSoup) -> Information:
     """
-    指定されたURLからNPOの詳細情報をスクレイピングしてNPOInformationを生成する。
-
-    Args:
-        detail_url (str): スクレイピングするNPO詳細ページのURL。
-
-    Returns:
-        NPOInformation: 取得したデータを元に生成されたNPOInformationインスタンス。
+    NPOの詳細情報をスクレイピングしてNPOInformationを生成する。
     """
-    try:
-        response = requests.get(detail_url, timeout=10)
-        response.raise_for_status()
-    except requests.RequestException as e:
-        raise ValueError(f"URLの取得に失敗しました: {detail_url}. エラー: {e}") from e
-
-    # BeautifulSoupでHTMLを解析
-    soup = BeautifulSoup(response.content, "html.parser")
-
     # テーブルデータを辞書として抽出
     data_dict = extract_table_data(soup)
 
