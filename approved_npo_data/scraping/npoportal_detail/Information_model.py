@@ -68,8 +68,12 @@ class Information:
     corporate_number: str = field(default="", metadata={"key": "法人番号"})
     """法人番号"""
 
-    approval_status: str = field(default="", metadata={"key": "認定"})
-    """認定"""
+    approval_status: str = field(default="", metadata={"key": "認定", "optional": True})
+    """
+    認定
+
+    ※存在しない場合があるため、optional=Trueと指定している（条件不明）
+    """
 
     jurisdiction_public_site: str = field(
         default="", metadata={"key": "所轄庁の情報公開サイト", "optional": True}
@@ -78,6 +82,29 @@ class Information:
     所轄庁の情報公開サイト
 
     ※存在しない場合があるため、optional=Trueと指定している（東京都のみ？）
+    """
+
+    dissolution_date: str = field(default="", metadata={"key": "解散日", "optional": True})
+    """
+    解散日
+
+    ※存在しない場合があるため、optional=Trueと指定している（解散している場合か？）
+    """
+
+    dissolution_reason: str = field(default="", metadata={"key": "解散理由", "optional": True})
+    """
+    解散理由
+
+    ※存在しない場合があるため、optional=Trueと指定している（解散している場合か？）
+    """
+
+    individual_approval_by_ordinance: str = field(
+        default="", metadata={"key": "条例による個別認定", "optional": True}
+    )
+    """
+    条例による個別認定
+
+    ※存在しない場合があるため、optional=Trueと指定している（条件不明）
     """
 
     @classmethod
