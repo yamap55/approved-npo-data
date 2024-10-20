@@ -12,7 +12,6 @@ from approved_npo_data.scraping.npoportal_detail.npoportal_detail import get_det
 from approved_npo_data.util.date_format import simple_format_time
 from approved_npo_data.util.enumerate import controlled_enumerate
 from approved_npo_data.util.file_operations import get_output_path, save_csv
-from approved_npo_data.util.text_format import standardize_text_for_key
 
 config.fileConfig("logging.conf", disable_existing_loggers=False)
 logger = getLogger(__name__)
@@ -55,16 +54,16 @@ def main():
         approved_npo_data, log_interval=10, max_items=MAX_ITEMS_TO_PROCESS
     ):
         associate_name = approved_npo_row.corporation_name
+        corporate_number = approved_npo_row.corporate_number
 
-        def getNpoDataRow(associate_name: str) -> AllNpoDataRow:
-            key = standardize_text_for_key(associate_name)
-            if key not in all_npo_data:
-                logger.info(f"{associate_name} は全NPO法人情報に存在しません。")
-                not_in_approve_npo.append(associate_name)
+        def getNpoDataRow(associate_name: str, corporate_number: str) -> AllNpoDataRow:
+            if corporate_number not in all_npo_data:
+                logger.info(f"全NPO法人情報に存在しません。 {associate_name=}, {corporate_number=}")
+                not_in_approve_npo.append(corporate_number)
                 return AllNpoDataRow.emptyInstance()
-            return all_npo_data[key]
+            return all_npo_data[corporate_number]
 
-        npoData = getNpoDataRow(associate_name)
+        npoData = getNpoDataRow(associate_name, corporate_number)
         url = npoData.corporate_information_url
         # TODO: 詳細ページ情報
         # 存在しない場合の空データもdataclassから取得する必要がある
