@@ -65,7 +65,7 @@ class TestExtractZipFile:
             mock_extractall.assert_called_once()
 
 
-@dataclass
+@dataclass(frozen=True)
 class SampleCsvRow(CsvRow):
     Name: str
     Age: str
