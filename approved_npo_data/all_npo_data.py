@@ -7,6 +7,7 @@ from tempfile import TemporaryDirectory
 from approved_npo_data.csv.csv_row import AllNpoDataRow
 from approved_npo_data.util.file_downloader import download_file
 from approved_npo_data.util.file_operations import extract_zip_file
+from approved_npo_data.util.text_format import standardize_text_for_key
 
 # 全NPO法人情報
 # refs. https://www.npo-homepage.go.jp/npoportal/download/all
@@ -27,7 +28,7 @@ def get_all_npo_data_file(temp_dir: Path) -> Path:
 
 
 def read_csv(csv_path: Path) -> dict[str, AllNpoDataRow]:
-    """csvファイルを読み込み、法人番号をキーとした辞書を返す"""
+    """csvファイルを読み込みヘッダの1つ目をキーとした辞書を返す"""
     data_dict: dict[str, AllNpoDataRow] = {}
 
     with open(csv_path, encoding="cp932", newline="") as file:
@@ -40,9 +41,8 @@ def read_csv(csv_path: Path) -> dict[str, AllNpoDataRow]:
             if not row:
                 # 空行はスキップ
                 continue
-            all_npo = AllNpoDataRow(*row)
-            # 法人番号をキーとして辞書に追加
-            data_dict[all_npo.corporate_number] = all_npo
+            key = standardize_text_for_key(row[0])
+            data_dict[key] = AllNpoDataRow(*row)
     return data_dict
 
 
