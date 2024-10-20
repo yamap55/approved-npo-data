@@ -5,7 +5,7 @@ from dataclasses import dataclass, field, fields
 from typing import Self
 
 
-@dataclass
+@dataclass(frozen=True)
 class CsvRow(ABC):  # noqa: B024
     """CSVの行データを表す抽象クラス"""
 
@@ -33,7 +33,7 @@ class CsvRow(ABC):  # noqa: B024
         return [getattr(self, field.name) for field in fields(self)]
 
 
-@dataclass
+@dataclass(frozen=True)
 class ApprovedNpoRow(CsvRow):
     """認定NPO法人のデータ"""
 
@@ -95,7 +95,7 @@ class ApprovedNpoRow(CsvRow):
     """特例認定有効期間 至"""
 
 
-@dataclass
+@dataclass(frozen=True)
 class AllNpoDataRow(CsvRow):
     """全NPO法人のデータ"""
 
@@ -304,7 +304,7 @@ class AllNpoDataRow(CsvRow):
     """条例個別指定：有効期限（条例個別指定：取消日)"""
 
 
-@dataclass
+@dataclass(frozen=True)
 class OutputApprovedNpoRow(CsvRow):
     """
     出力するための認定NPO法人のデータ
