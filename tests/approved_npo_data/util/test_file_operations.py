@@ -9,8 +9,8 @@ from unittest import mock
 
 import pytest
 
-from approved_npo_data.csv.csv_row import CsvRow
 from approved_npo_data.util.file_operations import extract_zip_file, get_output_path, save_csv
+from approved_npo_data.util.model_base import ModelBase
 
 
 class TestExtractZipFile:
@@ -66,7 +66,7 @@ class TestExtractZipFile:
 
 
 @dataclass(frozen=True)
-class SampleCsvRow(CsvRow):
+class SampleCsvRow(ModelBase):
     Name: str
     Age: str
     City: str
@@ -94,7 +94,7 @@ class TestSaveCsv:
         with open(output_path, newline="", encoding="utf-8") as file:
             reader = csv.reader(file, quoting=csv.QUOTE_ALL)
             header = next(reader)
-        expected_header = SampleCsvRow.getHeader()
+        expected_header = SampleCsvRow.get_csv_header()
         assert header == expected_header, "ヘッダーが正しく保存されていません"
 
     def test_csv_data(self, output_path: Path, sample_data: Sequence[SampleCsvRow]):
@@ -102,7 +102,7 @@ class TestSaveCsv:
             reader = csv.reader(file, quoting=csv.QUOTE_ALL)
             next(reader)  # ヘッダーをスキップ
             rows = list(reader)
-        expected_data = [row.getValues() for row in sample_data]
+        expected_data = [row.to_csv_row() for row in sample_data]
         assert rows == expected_data, "データが正しく保存されていません"
 
     def test_empty_data(self, tmp_path: Path):

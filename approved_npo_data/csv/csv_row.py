@@ -1,40 +1,12 @@
 """CSVの行データを表すクラス群"""
 
-from abc import ABC
-from dataclasses import dataclass, field, fields
-from typing import Self
+from dataclasses import dataclass, field
+
+from approved_npo_data.util.model_base import ModelBase
 
 
 @dataclass(frozen=True)
-class CsvRow(ABC):  # noqa: B024
-    """CSVの行データを表す抽象クラス"""
-
-    @classmethod
-    def emptyInstance(cls) -> Self:
-        """
-        空のインスタンスを返す
-
-        NOTE: 現在の実装では、フィールドは全て文字列型であることを想定している
-        正しくやるのであれば全てのフィールドにデフォルト値を設定するのが簡単か。
-        """
-        return cls(*["" for _ in fields(cls)])
-
-    def getValues(self) -> list:
-        """CSVの値を返す"""
-        return [getattr(self, f.name) for f in fields(self)]
-
-    @classmethod
-    def getHeader(cls) -> list[str]:
-        """CSVのヘッダを返す"""
-        return [field.metadata["key"] for field in fields(cls) if "key" in field.metadata]
-
-    def to_csv_row(self) -> list[str]:
-        """CSVの1行分のデータを取得"""
-        return [getattr(self, field.name) for field in fields(self)]
-
-
-@dataclass(frozen=True)
-class ApprovedNpoRow(CsvRow):
+class ApprovedNpoRow(ModelBase):
     """認定NPO法人のデータ"""
 
     control_code: str = field(default="", metadata={"key": "所轄庁コード"})
@@ -96,7 +68,7 @@ class ApprovedNpoRow(CsvRow):
 
 
 @dataclass(frozen=True)
-class AllNpoDataRow(CsvRow):
+class AllNpoDataRow(ModelBase):
     """全NPO法人のデータ"""
 
     corporation_name: str = field(default="", metadata={"key": "法人名称"})
@@ -305,7 +277,7 @@ class AllNpoDataRow(CsvRow):
 
 
 @dataclass(frozen=True)
-class OutputApprovedNpoRow(CsvRow):
+class OutputApprovedNpoRow(ModelBase):
     """
     出力するための認定NPO法人のデータ
 
