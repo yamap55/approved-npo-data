@@ -8,7 +8,7 @@ from datetime import datetime
 from logging import getLogger
 from pathlib import Path
 
-from approved_npo_data.csv.csv_row import CsvRow
+from approved_npo_data.util.model_base import ModelBase
 
 logger = getLogger(__name__)
 
@@ -25,7 +25,7 @@ def extract_zip_file(zip_path: Path, extract_to: Path | None = None) -> Path:
     return extract_to
 
 
-def save_csv(data: Sequence[CsvRow], output_path: Path) -> None:
+def save_csv(data: Sequence[ModelBase], output_path: Path) -> None:
     """CSVファイルでデータを保存する"""
     if not data:
         # NOTE: データが空の場合空のListが渡ってくるため、データの型が取れずヘッダが作成できない
@@ -33,8 +33,8 @@ def save_csv(data: Sequence[CsvRow], output_path: Path) -> None:
 
     with open(output_path, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file, quoting=csv.QUOTE_ALL)
-        writer.writerow(type(data[0]).getHeader())
-        writer.writerows(row.getValues() for row in data)
+        writer.writerow(type(data[0]).get_csv_header())
+        writer.writerows(row.to_csv_row() for row in data)
     logger.debug(f"Data saved to: {output_path}")
 
 

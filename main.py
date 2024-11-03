@@ -25,7 +25,7 @@ def createOutputApprovedNpoRow(
 ) -> OutputApprovedNpoRow:
     """出力データを作成する"""
     return OutputApprovedNpoRow(
-        *approved_npo_row.getValues(), *npo_data.getValues(), *detail_page_data
+        *approved_npo_row.to_csv_row(), *npo_data.to_csv_row(), *detail_page_data
     )
 
 
