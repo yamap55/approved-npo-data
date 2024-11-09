@@ -1,5 +1,7 @@
 from dataclasses import dataclass, field
 
+import pytest
+
 from approved_npo_data.util.model_base import ModelBase
 
 
@@ -13,6 +15,15 @@ class SampleModel(ModelBase):
     id: int = field(default=0, metadata={"key": "ID"})
     name: str = field(default="", metadata={"key": "Name", "optional": True})
     list_value: list[str] = field(default_factory=list, metadata={"key": "ListValue"})
+
+
+@dataclass(frozen=True)
+class SampleModelCustom(SampleModel):
+    """テスト用のデータモデル"""
+
+    def to_csv_field_name(self) -> str:
+        """nameフィールドを加工して返す"""
+        return f"「{self.name}」"
 
 
 class SampleModelBase:
@@ -74,9 +85,26 @@ class SampleModelBase:
         expected_header = ["Value1", "Value2", "ID", "Name", "ListValue"]
         assert SampleModel.get_csv_header() == expected_header
 
-    def test_to_csv_row(self):
-        """to_csv_row メソッドのテスト"""
-        instance = SampleModel(
-            value1="test1", value2=100, id=1, name="test", list_value=["item1", "item2"]
+    class TestToCsvRow:
+        """to_csv_row メソッドに関連するテスト"""
+
+        def test_to_csv_row(self):
+            """to_csv_row メソッドのテスト"""
+            instance = SampleModel(
+                value1="test1", value2=100, id=1, name="test", list_value=["item1", "item2"]
+            )
+            assert instance.to_csv_row() == ["test1", 100, 1, "test", ["item1", "item2"]]
+
+        @pytest.mark.parametrize(
+            "value1, value2, id, name, list_value, expected_row",
+            [
+                ("val1", 123, 42, "Alice", ["a", "b"], ["val1", 123, 42, "「Alice」", ["a", "b"]]),
+                ("", 0, 0, "", [], ["", 0, 0, "「」", []]),
+            ],
         )
-        assert instance.to_csv_row() == ["test1", 100, 1, "test", ["item1", "item2"]]
+        def test_to_csv_row_parametrize(self, value1, value2, id, name, list_value, expected_row):
+            """to_csv_row: 加工関数がある場合のテスト"""
+            instance = SampleModelCustom(
+                value1=value1, value2=value2, id=id, name=name, list_value=list_value
+            )
+            assert instance.to_csv_row() == expected_row
