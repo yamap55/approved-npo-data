@@ -97,5 +97,18 @@ class ModelBase(ABC):  # noqa: B024
         return [field.metadata["key"] for field in fields(cls) if "key" in field.metadata]
 
     def to_csv_row(self) -> list[str]:
-        """CSVの1行分のデータを取得"""
-        return [getattr(self, field.name) for field in fields(self)]
+        """
+        CSVの1行分のデータを取得
+
+        ※`to_csv_field_{フィールド名}`というメソッドがあれば使用される
+        """
+
+        def field_value(field):
+            # 特定の加工関数があればそれを使う
+            custom_method_name = f"to_csv_field_{field.name}"
+            if hasattr(self, custom_method_name):
+                return getattr(self, custom_method_name)()
+            else:
+                return getattr(self, field.name)
+
+        return [field_value(field) for field in fields(self)]
