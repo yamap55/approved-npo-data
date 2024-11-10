@@ -9,6 +9,8 @@ from approved_npo_data.approved_npo_data import get_approved_npo_data
 from approved_npo_data.config import MAX_ITEMS_TO_PROCESS, SCRAPING_DELAY_SECONDS
 from approved_npo_data.csv.csv_row import AllNpoDataRow, ApprovedNpoRow, OutputApprovedNpoRow
 from approved_npo_data.scraping.npoportal_detail.npoportal_detail import get_detail_data
+from approved_npo_data.scraping.tokyo_detail.information_model import BasicInformation
+from approved_npo_data.scraping.tokyo_detail.tokyo_detail import scrape_tokyo_detail
 from approved_npo_data.util.date_format import simple_format_time
 from approved_npo_data.util.enumerate import controlled_enumerate
 from approved_npo_data.util.file_operations import get_output_path, save_csv
@@ -21,11 +23,17 @@ BASE_PATH.mkdir(parents=True, exist_ok=True)
 
 
 def createOutputApprovedNpoRow(
-    approved_npo_row: ApprovedNpoRow, npo_data: AllNpoDataRow, detail_page_data: list[str]
+    approved_npo_row: ApprovedNpoRow,
+    npo_data: AllNpoDataRow,
+    detail_page_data: list[str],
+    tokyo_detail: BasicInformation,
 ) -> OutputApprovedNpoRow:
     """出力データを作成する"""
     return OutputApprovedNpoRow(
-        *approved_npo_row.to_csv_row(), *npo_data.to_csv_row(), *detail_page_data
+        *approved_npo_row.to_csv_row(),
+        *npo_data.to_csv_row(),
+        *detail_page_data,
+        *tokyo_detail.to_csv_row(),
     )
 
 
@@ -65,19 +73,19 @@ def main():
 
         npoData = getNpoDataRow(associate_name, corporate_number)
         url = npoData.corporate_information_url
-        # TODO: 詳細ページ情報
-        # 存在しない場合の空データもdataclassから取得する必要がある
-        detail_data = ["" for _ in range(23)]
-        if url:
-            try:
-                # URLが存在する場合には詳細ページからスクレイピングを行う
-                detail_data = get_detail_data(url)
 
-                # スクレイピングの負荷を考慮してスリープを入れる
-                sleep(SCRAPING_DELAY_SECONDS)
-            except Exception as e:
-                logger.error(f"{associate_name} のスクレイピングに失敗しました。{url} {e}")
-        outputApprovedNpoRow = createOutputApprovedNpoRow(approved_npo_row, npoData, detail_data)
+        # 詳細ページからスクレイピング
+        information, detail_data = get_detail_data(url, associate_name)
+
+        # 所轄庁の情報公開サイトからスクレイピング
+        # 現在は東京のみ
+        tokyo_detail = scrape_tokyo_detail(information.jurisdiction_public_site, associate_name)
+
+        # スクレイピングの負荷を考慮してスリープを入れる
+        sleep(SCRAPING_DELAY_SECONDS)
+        outputApprovedNpoRow = createOutputApprovedNpoRow(
+            approved_npo_row, npoData, detail_data, tokyo_detail
+        )
         output_data.append(outputApprovedNpoRow)
     logger.info(f"end merge data {len(output_data)=}, {len(not_in_approve_npo)=}")
 
