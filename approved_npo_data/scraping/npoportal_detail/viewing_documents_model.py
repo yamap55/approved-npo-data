@@ -3,20 +3,7 @@
 from abc import ABC
 from dataclasses import dataclass, field
 
-
-@dataclass(frozen=True)
-class LinkDocument:
-    """リンク付きの文書"""
-
-    title: str
-    url: str
-
-
-@dataclass(frozen=True)
-class NonLinkDocument:
-    """リンクなしの文書"""
-
-    value: str
+from approved_npo_data.scraping.document import LinkDocument, NonLinkDocument
 
 
 @dataclass(frozen=True)
