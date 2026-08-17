@@ -1,4 +1,4 @@
-FROM python:3.12.13
+FROM python:3.12.14
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Asia/Tokyo
